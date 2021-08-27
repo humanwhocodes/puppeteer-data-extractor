@@ -1,0 +1,65 @@
+{
+  "name": "@humanwhocodes/puppeteer-data-extractor",
+  "version": "0.0.0",
+  "description": "Query selector-based data extractor for Puppeteer.",
+  "type": "module",
+  "main": "dist/data-extractor.cjs",
+  "module": "dist/data-extractor.js",
+  "types": "dist/data-extractor.d.ts",
+  "exports": {
+    "require": "./dist/data-extractor.cjs",
+    "import": "./dist/data-extractor.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/nzakas"
+  },
+  "scripts": {
+    "build": "rollup -c && tsc",
+    "prepare": "npm run build",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/",
+    "pretest": "npm run build",
+    "test:unit": "mocha tests/data-extractor.test.js",
+    "test:build": "node tests/pkg.test.cjs && node tests/pkg.test.mjs",
+    "test": "npm run test:unit && npm run test:build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/humanwhocodes/puppeteer-data-extractor.git"
+  },
+  "keywords": [
+    "puppeteer",
+    "scraping"
+  ],
+  "author": "Nicholas C. Zaks",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/puppeteer": "^5.4.4",
+    "chai": "^4.3.4",
+    "eslint": "^7.32.0",
+    "lint-staged": "^10.4.0",
+    "mocha": "^9.0.3",
+    "puppeteer": "^10.2.0",
+    "rollup": "^1.20.3",
+    "typescript": "^4.0.3",
+    "yorkie": "^2.0.0"
+  },
+  "dependencies": {
+    "@humanwhocodes/array-with-default": "^1.1.0"
+  }
+}
