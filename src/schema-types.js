@@ -17,26 +17,75 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
 /**
  * @typedef {import("puppeteer").Page} Page
  * @typedef {import("puppeteer").ElementHandle} ElementHandle
+ *
+ * @typedef {Object<string,JSONValue>|Array<JSONValue>|string|number|boolean|null} JSONValue
  * 
- * @typedef {Object} SchemaDefinition
+ * @typedef {Object} SchemaDef
  * @property {string} selector The CSS selector to locate the element.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
  *
- * @typedef {Object} ArraySchemaDefinition
+ * @typedef {Object} ArraySchemaDef
  * @property {string} selector The CSS selector to locate the element.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
- * @property {Object<string,SchemaDefinition} items The schema for each item
+ * @property {Object<string,SchemaDef>} items The schema for each item
  *      in the array.
  *
- * @typedef {Object} ObjectSchemaDefinition
+ * @typedef {Object} ObjectSchemaDef
  * @property {string} selector The CSS selector to locate the element.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
- * @property {Object<string,SchemaDefinition} properties The schema for each 
+ * @property {Object<string,SchemaDef>} properties The schema for each 
  *      property in the object.
+ *
+ * @typedef {Object} TableSchemaDef
+ * @property {string} selector The CSS selector to locate the element.
+ * @property {Function?} convert A conversion function that will initially
+ *      receive the extracted data before placing it in the data structure
+ * @property {Array<SchemaDef>} head An array of schema definitions for the
+ *      cells in the `<thead>` element.
+ * @property {Array<SchemaDef>} body An array of schema definitions for the
+ *      cells in the `<tbody>` element.
+ * @property {Array<SchemaDef>} foot An array of schema definitions for the
+ *      cells in the `<tfoot>` element.
+ *
+ * @typedef {Object} TableObject
+ * @property {Array<JSONValue>} head An array of values extracted from the
+ *      cells in the `<thead>` element.
+ * @property {Array<JSONValue>} body An array of values extracted from the
+ *      cells in the `<tbody>` element.
+ * @property {Array<JSONValue>} foot An array of values extracted from the
+ *      cells in the `<tfoot>` element.
  */
+
+//-----------------------------------------------------------------------------
+// Helpers
+//-----------------------------------------------------------------------------
+
+/**
+ * Extracts the most useful text from an element given its tag name.
+ * Note: This function is used in the context of a Puppeteer page.
+ * @param {HTMLElement} element The element to extract text from. 
+ * @returns {string} The text from the element.
+ */
+function extractText(element) {
+    switch (element.tagName) {
+        case "IMG":
+            return element.alt;
+
+        case "META":
+            return element.content;
+
+        case "SELECT":
+        case "TEXTAREA":
+        case "INPUT":
+            return element.value;
+
+        default:
+            return element.innerText;
+    }
+}
 
 //-----------------------------------------------------------------------------
 // Functions
@@ -47,7 +96,7 @@ export const schemaTypes = {
     /**
      * Creates an array from the given schema definition and root.
      * @param {Page|ElementHandle} root The page or element handle to query from.
-     * @param {ArraySchemaDefinition} def The schema definition for the array.
+     * @param {ArraySchemaDef} def The schema definition for the array.
      * @returns {Array} An array of data matching the definition.
      */
     async array(root, { selector, items, convert = identity }) {
@@ -71,7 +120,7 @@ export const schemaTypes = {
     /**
      * Creates a Boolean value from the given schema definition and root.
      * @param {Page|ElementHandle} root The page or element handle to query from.
-     * @param {SchemaDefinition} def The schema definition for the array.
+     * @param {SchemaDef} def The schema definition for the array.
      * @returns {boolean} A boolean value representing the data.
      */
     async boolean(root, { selector, convert = identity }) {
@@ -82,7 +131,7 @@ export const schemaTypes = {
     /**
      * Creates a number value from the given schema definition and root.
      * @param {Page|ElementHandle} root The page or element handle to query from.
-     * @param {SchemaDefinition} def The schema definition for the array.
+     * @param {SchemaDef} def The schema definition for the array.
      * @returns {number} A number value representing the data.
      */
     async number(root, { selector, convert = identity }) {
@@ -90,6 +139,12 @@ export const schemaTypes = {
         return convert(stringToNumber(value));
     },
 
+    /**
+     * Creates an object from the given schema definition and root.
+     * @param {Page|ElementHandle} root The page or element handle to query from.
+     * @param {ObjectSchemaDef} def The schema definition for the array.
+     * @returns {Object<string,*>} An object of data matching the definition.
+     */
     async object(root, { selector, properties, convert = identity }) {
         const handle = selector ? await root.$$(selector) : root;
         const propertyEntries = Object.entries(properties);
@@ -106,26 +161,28 @@ export const schemaTypes = {
     /**
      * Creates a string value from the given schema definition and root.
      * @param {Page|ElementHandle} root The page or element handle to query from.
-     * @param {SchemaDefinition} def The schema definition for the array.
+     * @param {SchemaDef} def The schema definition for the array.
      * @returns {string} A string value representing the data.
      */
     async string(root, { selector, convert = identity } = {}) {
 
-        let value;
+        let value = await extractText(root, selector);
 
         if (selector) {
-            value = await root.$eval(selector, element => {
-                return element.form ? element.value : element.innerText;
-            });
+            value = await root.$eval(selector, extractText);
         } else {
-            value = await root.evaluate(element => {
-                return element.form ? element.value : element.innerText;
-            }, root);
+            value = await root.evaluate(extractText, root);
         }
 
         return convert(value);
     },
 
+    /**
+     * Creates an object containing information from an HTML table.
+     * @param {Page|ElementHandle} root The page or element handle to query from.
+     * @param {TableSchemaDef} def The schema definition for the table.
+     * @returns {TableObject} An object containing the data from the table.
+     */
     async table(root, { selector, head = [], body = [], foot = [], convert = identity }) {
 
         const tableHeadRowsHandles = await root.$$(`${selector} > thead > tr`);

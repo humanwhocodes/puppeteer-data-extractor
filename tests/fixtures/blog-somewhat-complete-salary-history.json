@@ -1,0 +1,154 @@
+{
+    "title": "My (somewhat) complete salary history as a software engineer",
+    "author": "Nicholas C. Zakas",
+    "date": "October 30, 2018",
+    "salaries": {
+        "head": [
+            [
+                "Year",
+                "YOE",
+                "Company",
+                "State",
+                "Title",
+                "Starting $",
+                "Ending $",
+                "Signing $",
+                "Options"
+            ]
+        ],
+        "body": [
+            [
+                2000,
+                0,
+                "Radnet, Inc.",
+                "MA",
+                "Webmaster",
+                "$48,000",
+                "$55,000",
+                "-",
+                "?"
+            ],
+            [
+                2001,
+                0,
+                "Radnet, Inc.",
+                "MA",
+                "UI Developer",
+                "$62,500",
+                "$62,500",
+                "-",
+                "-"
+            ],
+            [
+                2001,
+                0,
+                "MatrixOne, Inc.",
+                "MA",
+                "UI Designer/Developer",
+                "$68,000?",
+                "?",
+                "$2,000",
+                "?"
+            ],
+            [
+                2003,
+                3,
+                "MatrixOne, Inc.",
+                "MA",
+                "Senior Software Engineer",
+                "?",
+                "$75,000?",
+                "-",
+                "-"
+            ],
+            [
+                2005,
+                5,
+                "Vistaprint, Inc.",
+                "MA",
+                "Lead Software Engineer",
+                "$82,000?",
+                "$98,000",
+                "-",
+                "3,000"
+            ],
+            [
+                2006,
+                6,
+                "Yahoo, Inc.",
+                "CA",
+                "Senior Front-end Engineer",
+                "$115,000",
+                "?",
+                "$10,000",
+                "3,500"
+            ],
+            [
+                2008,
+                8,
+                "Yahoo, Inc.",
+                "CA",
+                "Principal Front-end Engineer",
+                "?",
+                "?",
+                "-",
+                "-"
+            ],
+            [
+                2011,
+                11,
+                "Yahoo, Inc.",
+                "CA",
+                "Presentation Architect",
+                "?",
+                "$165,000?",
+                "-",
+                "-"
+            ],
+            [
+                2013,
+                13,
+                "Box, Inc.",
+                "CA",
+                "Staff Software Engineer",
+                "$175,000",
+                "?",
+                "$25,000",
+                "50,000"
+            ],
+            [
+                2014,
+                14,
+                "Box, Inc.",
+                "CA",
+                "Principal Architect",
+                "$208,000",
+                "$220,000",
+                "-",
+                "-"
+            ]
+        ],
+        "foot": []
+    },
+    "books": [
+        {
+            "title": "Understanding ECMAScript 6"
+        },
+        {
+            "title": "The Principles of Object-Oriented JavaScript"
+        },
+        {
+            "title": "Maintainable JavaScript"
+        },
+        {
+            "title": "Professional JavaScript for Web Developers, 3rd Edition"
+        }
+    ],
+    "openGraph": {
+        "image": "https://humanwhocodes.com/images/favicon.png",
+        "url": "https://humanwhocodes.com/blog/2018/10/my-somewhat-complete-salary-history-software-engineer/",
+        "title": "My (somewhat) complete salary history as a software engineer",
+        "description": "",
+        "type": "article"
+    }
+}
