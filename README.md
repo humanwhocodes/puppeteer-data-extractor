@@ -56,7 +56,18 @@ const extractor = new DataExtractor({
     }
 });
 
-// page is a Puppeteer page
+// create a browser instance
+const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--no-gpu", "--disable-dev-shm-usage"],
+    ignoreHTTPSErrors: true
+});
+
+// setup a page and make sure it's ready for extraction
+const page = await browser.newPage();
+await page.goto("https://humanwhocodes.com");
+await page.waitForSelector("main");
+
+// pull data from the page
 const data = await extractor.extractFrom(page);
 ```
 
