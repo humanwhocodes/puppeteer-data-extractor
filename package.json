@@ -34,7 +34,7 @@
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/",
     "pretest": "npm run build",
-    "test": "mocha tests/data-extractor.test.js"
+    "test": "mocha tests/data-extractor.test.js --timeout 5000"
   },
   "repository": {
     "type": "git",
