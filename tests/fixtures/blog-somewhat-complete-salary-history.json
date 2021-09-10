@@ -144,6 +144,25 @@
             "title": "Professional JavaScript for Web Developers, 3rd Edition"
         }
     ],
+    "archive": [
+        2021,
+        2020,
+        2019,
+        2018,
+        2016,
+        2015,
+        2014,
+        2013,
+        2012,
+        2011,
+        2010,
+        2009,
+        2008,
+        2007,
+        2006,
+        2005,
+        2004
+    ],
     "openGraph": {
         "image": "https://humanwhocodes.com/images/favicon.png",
         "url": "https://humanwhocodes.com/blog/2018/10/my-somewhat-complete-salary-history-software-engineer/",

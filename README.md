@@ -203,6 +203,33 @@ Here, an object is created with three properties. As with `"array"`, the selecto
 
 You can also use a `convert` function.
 
+### `"custom"`
+
+The `"custom"` type lets you control exactly how data is extracted from the page by specifying an `extract` function. The `extract` receives the element indicated by `selector` and is executed in the context of the Puppeteer page, meaning it does not act as a closure. The `element` passed in is an `HTMLElement` instance that you can interrogate to find the data you want. Then, return a JSON-serializable value from `extract`. For example:
+
+```js
+{
+    archive: {
+        type: "custom",
+        selector: "#sidebar > ul:nth-of-type(4)",
+        extract(element) {
+
+            // this function is NOT a closure and runs in the Puppeteer page
+
+            const result = [];
+
+            for (const child of element.children) {
+                result.push(Number(child.innerText))
+            }
+
+            return result;
+        }
+    },
+}
+```
+
+You can also use a `convert` function with `"custom"`, and that function does not execute inside of the Puppeteer page, so you can make further customizations to the returned data.
+
 ## Developer Setup
 
 1. Fork the repository

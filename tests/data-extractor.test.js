@@ -114,6 +114,19 @@ const salaryPost = {
             }
         }
     },
+    archive: {
+        type: "custom",
+        selector: "#sidebar > ul:nth-of-type(4)",
+        extract(element) {
+            const result = [];
+
+            for (const child of element.children) {
+                result.push(Number(child.innerText))
+            }
+
+            return result;
+        }
+    },
     openGraph: {
         type: "object",
         properties: {

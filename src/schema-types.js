@@ -32,6 +32,14 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  * @property {Object<string,SchemaDef>} items The schema for each item
  *      in the array.
  *
+ * @typedef {Object} CustomSchemaDef
+ * @property {string} selector The CSS selector to locate the element.
+ * @property {HTMLElement => JSONValue} extract A function that receives an HTML element as
+ *      an argument and must return a serializable value. This function runs
+ *      in the context of a Puppeteer page.
+ * @property {Function?} convert A conversion function that will initially
+ *      receive the extracted data before placing it in the data structure
+ *
  * @typedef {Object} ObjectSchemaDef
  * @property {string} selector The CSS selector to locate the element.
  * @property {Function?} convert A conversion function that will initially
@@ -118,6 +126,29 @@ export const schemaTypes = {
     },
 
     /**
+     * Creates a value from a custom element handler.
+     * @param {Page|ElementHandle} root The page or element handle to query from.
+     * @param {ArraySchemaDef} def The schema definition for the custom value.
+     * @returns {*} The value returned from Puppeteer.
+     */
+    async custom(root, { selector, extract, convert = identity }) {
+
+        if (typeof extract !== "function") {
+            throw new TypeError("Custom schema type must have extract() method.");
+        }
+
+        let value;
+
+        if (selector) {
+            value = await root.$eval(selector, extract);
+        } else {
+            value = await root.evaluate(extract, root);
+        }
+
+        return convert(value);
+    },
+
+    /**
      * Creates a Boolean value from the given schema definition and root.
      * @param {Page|ElementHandle} root The page or element handle to query from.
      * @param {SchemaDef} def The schema definition for the array.
@@ -166,7 +197,7 @@ export const schemaTypes = {
      */
     async string(root, { selector, convert = identity } = {}) {
 
-        let value = await extractText(root, selector);
+        let value;
 
         if (selector) {
             value = await root.$eval(selector, extractText);
