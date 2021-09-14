@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://www.github.com/humanwhocodes/puppeteer-data-extractor/compare/v0.2.0...v0.3.0) (2021-09-14)
+
+
+### Features
+
+* Implement optional property on schema types ([6547ab7](https://www.github.com/humanwhocodes/puppeteer-data-extractor/commit/6547ab7f4eb9a192bd4ba428ce42aedc4dafd7a9))
+
 ## [0.2.0](https://www.github.com/humanwhocodes/puppeteer-data-extractor/compare/v0.1.0...v0.2.0) (2021-09-10)
 
 
