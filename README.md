@@ -52,7 +52,8 @@ const extractor = new DataExtractor({
     },
     stars: {
         type: "number",
-        selector: "svg.octicon-star + span"
+        selector: "svg.octicon-star + span",
+        optional: true
     }
 });
 
@@ -87,9 +88,10 @@ There are several different schema types you can use.
 
 ### Primitive Types
 
-There are three primitive schema types: `string`, `number`, and `boolean`. Each type has two possible properties:
+There are three primitive schema types: `string`, `number`, and `boolean`. Each type has three possible properties:
 
 1. `selector` (**required**) - the CSS selector to find the element.
+1. `optional` - a boolean indicating if the element can be safely skipped. When `true`, if the CSS selector evaluates to `null` then the field is set to `undefined`; when omitted or `false`, an error is thrown when the CSS selector evaluates to `null`.
 1. `convert` - a function used to convert the value into some other form. This function is run after the text is extracted and from the element and converted (for `number` and `boolean`), and before that text is inserted into the final data structure.
 
 The primitive schema types all act the same except for how they convert the extracted value:

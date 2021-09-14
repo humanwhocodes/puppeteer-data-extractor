@@ -61,6 +61,15 @@ function blockAllBut(page, url) {
     });
 }
 
+/**
+ * Normalizes an object by passing it through JSON methods.
+ * @param {Object} data The data to normalize. 
+ * @returns {Object} The normalized data.
+ */
+function normalizeToJson(data) {
+    return JSON.parse(JSON.stringify(data));
+}
+
 //-----------------------------------------------------------------------------
 // Schemas
 //-----------------------------------------------------------------------------
@@ -77,6 +86,11 @@ const salaryPost = {
     date: {
         type: "string",
         selector: "[itemprop=datePublished]"
+    },
+    missing: {
+        type: "string",
+        selector: "[foo=bar]",
+        optional: true
     },
     salaries: {
         type: "table",
@@ -187,7 +201,7 @@ describe("DataExtractor", () => {
             
             await page.goto(url);
             await page.waitForSelector("body");
-            const result = await extractor.extractFrom(page);
+            const result = normalizeToJson(await extractor.extractFrom(page));
             expect(result).to.deep.equal(expected);
         });
     });

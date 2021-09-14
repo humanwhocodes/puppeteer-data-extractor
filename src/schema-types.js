@@ -22,11 +22,13 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  * 
  * @typedef {Object} SchemaDef
  * @property {string} selector The CSS selector to locate the element.
+ * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
  *
  * @typedef {Object} ArraySchemaDef
  * @property {string} selector The CSS selector to locate the element.
+ * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
  * @property {Object<string,SchemaDef>} items The schema for each item
@@ -42,6 +44,7 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  *
  * @typedef {Object} ObjectSchemaDef
  * @property {string} selector The CSS selector to locate the element.
+ * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
  * @property {Object<string,SchemaDef>} properties The schema for each 
@@ -49,6 +52,7 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  *
  * @typedef {Object} TableSchemaDef
  * @property {string} selector The CSS selector to locate the element.
+ * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
  * @property {Array<SchemaDef>} head An array of schema definitions for the
@@ -78,6 +82,11 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  * @returns {string} The text from the element.
  */
 function extractText(element) {
+
+    if (!element) {
+        return undefined;
+    }
+
     switch (element.tagName) {
         case "IMG":
             return element.alt;
@@ -95,6 +104,16 @@ function extractText(element) {
     }
 }
 
+/**
+ * Throws an error saying the selector wasn't found.
+ * @param {string} selector The selector that couldn't be found. 
+ * @returns {void}
+ * @throws {Error} Always.
+ */
+function throwNotFound(selector) {
+    throw new Error(`Element matching "${selector}" could not be found.`);
+}
+
 //-----------------------------------------------------------------------------
 // Functions
 //-----------------------------------------------------------------------------
@@ -107,8 +126,17 @@ export const schemaTypes = {
      * @param {ArraySchemaDef} def The schema definition for the array.
      * @returns {Array} An array of data matching the definition.
      */
-    async array(root, { selector, items, convert = identity }) {
+    async array(root, { selector, optional, items, convert = identity }) {
         const itemHandles = await root.$$(selector);
+
+        if (itemHandles.length === 0) {
+            if (optional) {
+                return undefined;
+            }
+
+            throwNotFound(selector);
+        }
+
         const itemEntries = Object.entries(items);
         const result = [];
 
@@ -131,20 +159,27 @@ export const schemaTypes = {
      * @param {ArraySchemaDef} def The schema definition for the custom value.
      * @returns {*} The value returned from Puppeteer.
      */
-    async custom(root, { selector, extract, convert = identity }) {
+    async custom(root, { selector, optional, extract, convert = identity }) {
 
         if (typeof extract !== "function") {
             throw new TypeError("Custom schema type must have extract() method.");
         }
 
-        let value;
+        let handle = root;
 
         if (selector) {
-            value = await root.$eval(selector, extract);
-        } else {
-            value = await root.evaluate(extract, root);
+            handle = await root.$(selector);
+
+            if (!handle) {
+                if (optional) {
+                    return undefined;
+                }
+
+                throwNotFound(selector);
+            }
         }
 
+        let value = await handle.evaluate(extract, handle);
         return convert(value);
     },
 
@@ -154,8 +189,8 @@ export const schemaTypes = {
      * @param {SchemaDef} def The schema definition for the array.
      * @returns {boolean} A boolean value representing the data.
      */
-    async boolean(root, { selector, convert = identity }) {
-        const value = await this.string(root, { selector });
+    async boolean(root, { selector, optional, convert = identity }) {
+        const value = await this.string(root, { selector, optional });
         return convert(stringToBoolean(value));
     },
 
@@ -165,8 +200,8 @@ export const schemaTypes = {
      * @param {SchemaDef} def The schema definition for the array.
      * @returns {number} A number value representing the data.
      */
-    async number(root, { selector, convert = identity }) {
-        const value = await this.string(root, { selector });
+    async number(root, { selector, optional, convert = identity }) {
+        const value = await this.string(root, { selector, optional });
         return convert(stringToNumber(value));
     },
 
@@ -176,8 +211,17 @@ export const schemaTypes = {
      * @param {ObjectSchemaDef} def The schema definition for the array.
      * @returns {Object<string,*>} An object of data matching the definition.
      */
-    async object(root, { selector, properties, convert = identity }) {
-        const handle = selector ? await root.$$(selector) : root;
+    async object(root, { selector, optional, properties, convert = identity }) {
+        const handle = selector ? await root.$(selector) : root;
+
+        if (!handle) {
+            if (optional) {
+                return undefined;
+            }
+
+            throwNotFound(selector);
+        }
+
         const propertyEntries = Object.entries(properties);
 
         const result = {};
@@ -195,17 +239,14 @@ export const schemaTypes = {
      * @param {SchemaDef} def The schema definition for the array.
      * @returns {string} A string value representing the data.
      */
-    async string(root, { selector, convert = identity } = {}) {
+    async string(root, { selector, optional, convert = identity } = {}) {
 
-        let value;
-
-        if (selector) {
-            value = await root.$eval(selector, extractText);
-        } else {
-            value = await root.evaluate(extractText, root);
-        }
-
-        return convert(value);
+        return this.custom(root, {
+            selector,
+            optional,
+            extract: extractText,
+            convert
+        });
     },
 
     /**
