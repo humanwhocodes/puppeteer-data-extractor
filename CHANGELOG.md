@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://www.github.com/humanwhocodes/puppeteer-data-extractor/compare/v0.3.0...v0.4.0) (2021-09-17)
+
+
+### Features
+
+* Add switch schema type ([094caeb](https://www.github.com/humanwhocodes/puppeteer-data-extractor/commit/094caeb4eaa82d8fffdadd9751940c1373931ade))
+
 ## [0.3.0](https://www.github.com/humanwhocodes/puppeteer-data-extractor/compare/v0.2.0...v0.3.0) (2021-09-14)
 
 
