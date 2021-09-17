@@ -113,7 +113,7 @@ If you want a more specific conversion, you should use `"string"` and specify a 
 }
 ```
 
-### `"array"`
+### `"array"` Type
 
 The `"array"` type lets you specify a collection of elements whose text should be extracted and the results put into an array. Here, the `selector` property is expected to return more than one element, and there is an additional `items` property that contains another schema that will be used for each item in the array. For example:
 
@@ -164,7 +164,7 @@ The elements of the array are always an object, but if you'd like them to be a p
 }
 ```
 
-### `"object"`
+### `"object"` Type
 
 The `"object"` type lets you specify a collection of properties whose text should be extracted and the results put into an object. There is an additional `properties` property that contains another schema. For example:
 
@@ -205,7 +205,7 @@ Here, an object is created with three properties. As with `"array"`, the selecto
 
 You can also use a `convert` function.
 
-### `"custom"`
+### `"custom"` Type
 
 The `"custom"` type lets you control exactly how data is extracted from the page by specifying an `extract` function. The `extract` receives the element indicated by `selector` and is executed in the context of the Puppeteer page, meaning it does not act as a closure. The `element` passed in is an `HTMLElement` instance that you can interrogate to find the data you want. Then, return a JSON-serializable value from `extract`. For example:
 
@@ -231,6 +231,48 @@ The `"custom"` type lets you control exactly how data is extracted from the page
 ```
 
 You can also use a `convert` function with `"custom"`, and that function does not execute inside of the Puppeteer page, so you can make further customizations to the returned data.
+
+### `"switch"` Type
+
+The `"switch"` type lets you specify multiple possible values for the key, and the first one that matches will be the value. You do so by providing a `cases` array, each of which has a pattern to match (`if`) and a value to use (`then`). For example:
+
+```js
+{
+    references: {
+        type: "switch",
+        cases: [
+            {
+                if: "ol.references",
+                then: {
+                    type: "array",
+                    selector: "ol.references > li",
+                    items: {
+                        name: {
+                            type: "string"
+                        }
+                    }
+                }
+            },
+            {
+                if: "#references",
+                then: {
+                    type: "array",
+                    selector: "#references + ol > li",
+                    items: {
+                        name: {
+                            type: "string"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
+```
+
+In this example, the key `references` has two possible options. The first is to create an array based on the selector `ol.references > li` and the second is based on the selector `#references + ol > li`. If the first selector matches, then that case is executed and the second is not; if the first selector doesn't match, then the second selector is checked.
+
+Note: If no cases match then an error is thrown. 
 
 ## Developer Setup
 

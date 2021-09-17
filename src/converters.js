@@ -18,7 +18,7 @@ export function identity(value) {
 }
 
 export function stringToNumber(value) {
-    return Number(value.replace(/[^\d\.\-]/g, ""));
+    return Number(value.replace(/[^\d.-]/g, ""));
 }
 
 export function stringToBoolean(value) {

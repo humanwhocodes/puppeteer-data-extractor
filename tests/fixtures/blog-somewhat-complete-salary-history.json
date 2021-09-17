@@ -169,5 +169,14 @@
         "title": "My (somewhat) complete salary history as a software engineer",
         "description": "",
         "type": "article"
-    }
+    },
+    "references": [
+        {
+        "name": "By the Numbers: What pay inequality looks like for women in tech (forbes.com)"
+        },
+        {
+        "name": "Women Know When Negotiating Isn’t Worth It (theatlantic.com)"
+        }
+      
+    ]
 }

@@ -165,6 +165,35 @@ const salaryPost = {
                 selector: "meta[name='og:type']"
             }
         }
+    },
+    references: {
+        type: "switch",
+        cases: [
+            {
+                if: "#foo",
+                then: {
+                    type: "array",
+                    selector: "#foo > ol > li",
+                    items: {
+                        name: {
+                            type: "string"
+                        }
+                    }
+                }
+            },
+            {
+                if: "#references",
+                then: {
+                    type: "array",
+                    selector: "#references + ol > li",
+                    items: {
+                        name: {
+                            type: "string"
+                        }
+                    }
+                }
+            }
+        ]
     }
 };
 

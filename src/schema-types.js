@@ -19,14 +19,21 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  * @typedef {import("puppeteer").ElementHandle} ElementHandle
  *
  * @typedef {Object<string,JSONValue>|Array<JSONValue>|string|number|boolean|null} JSONValue
+ * @typedef {SchemaDef|ArraySchemaDef|ObjectSchemaDef|TableSchemaDef|SwitchSchemaDef|CustomSchemaDef} AnySchemaDef
  * 
+ * @typedef {Object} CaseIf
+ * @property {string} if The CSS selector to locate.
+ * @property {AnySchemaDef} then The schema definition to apply if `if` is found.
+ *
  * @typedef {Object} SchemaDef
+ * @property {string} type The type of schema.
  * @property {string} selector The CSS selector to locate the element.
  * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
  *      receive the extracted data before placing it in the data structure
  *
  * @typedef {Object} ArraySchemaDef
+ * @property {string} type The type of schema.
  * @property {string} selector The CSS selector to locate the element.
  * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
@@ -35,6 +42,7 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  *      in the array.
  *
  * @typedef {Object} CustomSchemaDef
+ * @property {string} type The type of schema.
  * @property {string} selector The CSS selector to locate the element.
  * @property {HTMLElement => JSONValue} extract A function that receives an HTML element as
  *      an argument and must return a serializable value. This function runs
@@ -43,6 +51,7 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  *      receive the extracted data before placing it in the data structure
  *
  * @typedef {Object} ObjectSchemaDef
+ * @property {string} type The type of schema.
  * @property {string} selector The CSS selector to locate the element.
  * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
@@ -50,7 +59,12 @@ import { stringToBoolean, stringToNumber, identity } from "./converters.js";
  * @property {Object<string,SchemaDef>} properties The schema for each 
  *      property in the object.
  *
+ * @typedef {Object} SwitchSchemaDef
+ * @property {string} type The type of schema.
+ * @property {Array<CaseIf>} cases The cases to check.
+ *
  * @typedef {Object} TableSchemaDef
+ * @property {string} type The type of schema.
  * @property {string} selector The CSS selector to locate the element.
  * @property {boolean} [optional=false] Indicates if the selector may not exist.
  * @property {Function?} convert A conversion function that will initially
@@ -125,8 +139,14 @@ export const schemaTypes = {
      * @param {Page|ElementHandle} root The page or element handle to query from.
      * @param {ArraySchemaDef} def The schema definition for the array.
      * @returns {Array} An array of data matching the definition.
+     * @throws {TypeError} If required information is missing.
      */
     async array(root, { selector, optional, items, convert = identity }) {
+
+        if (typeof items === "undefined") {
+            throw new TypeError(`Array definition for "${selector}" is missing "items" property.`);
+        }
+
         const itemHandles = await root.$$(selector);
 
         if (itemHandles.length === 0) {
@@ -247,6 +267,30 @@ export const schemaTypes = {
             extract: extractText,
             convert
         });
+    },
+
+    /**
+     * Chooses the value from the first case that matches.
+     * @param {Page|ElementHandle} root The page or element handle to query from.
+     * @param {SwitchSchemaDef} def The schema definition for the switch.
+     * @returns {*} The value returned from the first matching case.
+     * @throws {TypeError} If required information is missing.
+     */
+    async switch(root, { cases }) {
+
+        if (!Array.isArray(cases)) {
+            throw new TypeError("Switch definition is missing 'cases' array.");
+        }
+
+        for (const caseDef of cases) {
+            const handle = await root.$(caseDef.if);
+            if (handle) {
+                return this[caseDef.then.type](root, caseDef.then);
+            }
+        }
+
+        throw new Error("No cases matched.");
+
     },
 
     /**
